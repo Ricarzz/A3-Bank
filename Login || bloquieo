@@ -16,7 +16,7 @@ public boolean verificarSenhaLogin (String respostaSenha) {
 
 
 
-// ---- Aqui para evitarmos entrada forçada, criamos uma trava temporaria apartir de 3 erros, e uma trava "permanente" pós 5 erros: ----
+// ---- Para evitarmos entrada forçada, criamos uma trava temporaria apartir de 3 erros, e uma trava "permanente" pós 5 erros: ----
 
    boolean senhaCorreta = clienteAtual.verificarSenhaLogin(senhaDigitada);
    if (senhaCorreta) {
@@ -50,6 +50,30 @@ public boolean verificarSenhaLogin (String respostaSenha) {
 
 
 
+// ---- Verificação ao tentar logar no aplicativo, caso bloqueada enviaremos um código de desbloqueio ao email: ----
+
+            if ("SIM".equalsIgnoreCase(clienteAtual.getContaBloqueada())) {
+                JOptionPane.showMessageDialog(null, "Sua conta está bloqueada por suspeita de entrada forçada. Verifique o email para desbloquear.");
+                String codigoGerado = clienteDAO.gerarCodigoVerificacao();
+                clienteDAO.salvarCodigoRecuperacao(clienteAtual.getCpf(), codigoGerado);
+                EnviarEmail.enviarCodigoVerificacao(clienteAtual.getEmail(), codigoGerado);
+
+                String codigoDigitado = JOptionPane.showInputDialog(null, "Digite o código de desbloqueio enviado ao seu e-mail:");
+
+                if (codigoDigitado != null && clienteDAO.verificarCodigoRecuperacao(clienteAtual.getCpf(), codigoDigitado)) {
+                    clienteDAO.desbloquearConta(clienteAtual.getCpf());
+                    clienteDAO.apagarCodigoRecuperacao(clienteAtual.getCpf());
+                    clienteAtual = clienteDAO.buscarPorEmail(clienteAtual.getEmail());
+                    JOptionPane.showMessageDialog(null, "Desbloqueio realizado com sucesso. Tente o login novamente.");
+                    passwordField.setText("");
+                } else {
+                    JOptionPane.showMessageDialog(null, "Código inválido ou incorreto. A conta permanece bloqueada.");
+                }
+                return;
+            }
+
+
+
 // ---- Aqui alguns dos metodos criados: ----  
 
     public boolean precisaBloquearTemporariamente() {
@@ -68,3 +92,44 @@ public boolean verificarSenhaLogin (String respostaSenha) {
         tempoDeBloqueio += 5000;
         nTempo += 5;
     }
+
+    public void bloquearConta(String cpf) {
+        String sql = "UPDATE cliente SET EntradaForcada = 'SIM' WHERE CPF = ?";
+        try (Connection conn = Conexao.conectar();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, cpf);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Erro ao bloquear conta: " + e.getMessage());
+        }
+    }
+
+    public boolean buscarContaBloqueada(String cpf) {
+        String sql = "SELECT EntradaForcada FROM cliente WHERE CPF = ?";
+        try (Connection conn = Conexao.conectar();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, cpf);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return "SIM".equalsIgnoreCase(rs.getString("ContaBloqueada"));
+            }
+        } catch (SQLException e) {
+            System.out.println("Erro ao verificar bloqueio: " + e.getMessage());
+        }
+        return false;
+    }
+    
+    public void desbloquearConta(String cpf) {
+        String sql = "UPDATE cliente SET EntradaForcada = 'NAO' WHERE cpf = ?";
+    
+        try (Connection conn = Conexao.conectar();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, cpf); 
+            stmt.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+
