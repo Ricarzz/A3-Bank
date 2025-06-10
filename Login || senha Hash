@@ -1,0 +1,82 @@
+// nosso sistema de gerar Hash na classe SegurançHeleper:
+
+public static String gerarHash(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(input.getBytes());
+
+            // Converter bytes para string hexadecimal
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hashBytes) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+
+            return hexString.toString();
+
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Erro ao gerar hash: " + e.getMessage());
+        }
+    }
+
+
+
+// para cadastrar uma nova senha: 
+
+String senha = new String(jPasswordField1.getPassword());
+String senhaHash = SegurancaHelper.gerarHash(senha);
+Cliente cliente = new Cliente(nome, cpf, 0.0, senhaHash, sexo, telefone, email, 0, "NAO");
+
+
+
+// na classe Cliente.DAO, em caso de "Esqueci a senha" :
+
+public void trocarSenha(String email, String novaSenhaHash) {
+        String sql = "UPDATE cliente SET SenhaHash = ? WHERE Email = ?";
+        try (Connection conn = Conexao.conectar();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, novaSenhaHash);
+            stmt.setString(2, email);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+// na classe Cliente, para verificar a senha de confirmação de transferência:
+
+public boolean verificarSenha(String respostaSenha){
+        String hashDigitado = SegurancaHelper.gerarHash(respostaSenha);
+        
+        if(this.senha.equals(hashDigitado)){
+                System.out.println(""); // só pra pular linha
+                return true;
+            } else {
+                System.out.println(""); // pular linha
+                System.out.println("Senha incorreta, transferência cancelada.");
+                System.out.println(""); // só pra pular linha
+                return false;
+            }      
+    }
+
+
+
+// verificar a senha no login:
+
+public boolean verificarSenhaLogin (String respostaSenha) {
+        String hashDigitado = SegurancaHelper.gerarHash(respostaSenha);
+
+        if(this.senha.equals(hashDigitado)){
+            tentativaSenha = 0;
+            tempoDeBloqueio = 5000;
+            nTempo = 5;
+            return true;
+        } else {
+            tentativaSenha++;
+            return false;
+        }
+    }
+
