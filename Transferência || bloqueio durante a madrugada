@@ -1,0 +1,52 @@
+// ---- Nosso bloquieo entre 00h até 06h: ----
+
+        LocalTime agora = Relogio.getInstancia().getHoraAtual();  
+
+        if (agora.isAfter(LocalTime.MIDNIGHT) && agora.isBefore(LocalTime.of(6, 0)) && valor > 1000.0) {
+        JOptionPane.showMessageDialog(null, 
+            "Transferências acima de R$1.000,00 não são permitidas entre 00h e 06h por motivos de segurança.");
+        jTextField1.setText("");
+        jTextField2.setText("");
+        return;
+        }
+
+
+
+// ---- Criamos um relógio na nossa classe Relogio.java para mostrar o horario atual em nossas telas: ----
+
+    private Relogio() {
+        this.horaAtual = LocalTime.now();
+        this.modoAutomatico = true;
+
+        timer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (modoAutomatico) {
+                    horaAtual = LocalTime.now();
+                } else {
+                    horaAtual = horaAtual.plusSeconds(1);
+                }
+
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm"); // aqui da pra por segundos tbm 
+                for (JLabel label : labels) {
+                    label.setText(horaAtual.format(formatter));
+                }
+            }
+        });
+        timer.start();
+        atualizarLabels();
+    } 
+
+
+// ---- Podendo também mudar o horário para simulação e testes: ----
+// método
+
+    public void setHoraManual(LocalTime hora) {
+        this.horaAtual = hora;
+        this.modoAutomatico = false;
+    }
+
+//mudar horário
+
+Relogio.getInstancia().setHoraManual(LocalTime.of(0, 30)); // muda o horario para 00:30
+
