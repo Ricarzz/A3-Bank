@@ -1,0 +1,64 @@
+// ---- Verificamos se os valores de trsnferência estão corretos, se não há um valor negativo ou nulo: ----
+
+    if (valorStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Digite o valor da transferência.");
+            return;
+    }
+        
+    double valor = converterValorBR(valorStr);
+    String chave = jTextField2.getText().trim();
+        
+    if (!cliente.verificarTransferencia(valor)) {
+        if(valor <= 0)JOptionPane.showMessageDialog(this, "Impossivel com valor nulo ou negativo.");
+        else {
+             JOptionPane.showMessageDialog(this, "Saldo insuficiente, transferência cancelada.");   
+        }
+            jTextField1.setText("");
+            jTextField2.setText("");
+            return;
+    }
+
+
+
+// ---- Algumas verificções de depósito e confirmação de transação: ----
+
+        if (valorTexto.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Digite um valor para depósito.");
+            return;
+        }
+        try { 
+            NumberFormat formatoBR = NumberFormat.getInstance(new Locale("pt", "BR"));
+            Number numero = formatoBR.parse(valorTexto);
+            double valorDeposito = numero.doubleValue();
+
+            
+            if(valorDeposito <= 0) { 
+                JOptionPane.showMessageDialog(this, "Não é possivel depositar valor nulo ou negativo.");
+            } else {
+                int confirmacao = JOptionPane.showConfirmDialog(this,
+                "Deseja realmente depositar R$" + valorTexto + "?",
+                "Confirmar Depósito", JOptionPane.YES_NO_OPTION);
+
+                if(confirmacao != JOptionPane.YES_OPTION) {
+                    return;
+                }
+
+                double saldoAtual = cliente.getSaldo();
+                double novoSaldo = saldoAtual + valorDeposito;
+                cliente.setSaldo(novoSaldo);
+
+                clienteDAO.atualizarSaldo(cliente.getCpf(), novoSaldo);
+                clienteDAO.registrarTransacao(cliente.getCpf(), "Depósito", valorDeposito, null);
+
+                String saldoFormatado = String.format("R$ %.2f", cliente.getSaldo());
+                JOptionPane.showMessageDialog(this, "Depósito realizado com sucesso!\nNovo saldo: " + saldoFormatado);
+
+                TelaPrincipal tela = new TelaPrincipal(cliente);
+                tela.setVisible(true);
+                this.dispose();
+            }
+            
+        } catch(NumberFormatException | ParseException e){
+            JOptionPane.showMessageDialog(this, "Valor inválido, use apenas números.EX:1.000,50");
+        }
+    }
