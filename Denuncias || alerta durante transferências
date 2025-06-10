@@ -1,0 +1,38 @@
+// ---- Toda transferência que for realizada para um destinatário suspeito (3 denúncias ou mais), o usuário recebe um alerta e um pedido de confirmação para concluir a transação: ----
+
+      int denuncias = clienteDAO.buscarQuantidadeDenuncia(destinatario.getCpf());   
+
+  ... } else if (denuncias >= 3) {
+            int opcao = JOptionPane.showConfirmDialog(this, 
+            "A conta de destino possui muitas denúncias registradas. Deseja continuar?", 
+            "Atenção", JOptionPane.YES_NO_OPTION);
+
+            if (opcao != JOptionPane.YES_OPTION) {
+            return;
+            }
+        }
+
+
+
+// ---- Método de buscar a quantidade de denúncias do destinatário: ----
+
+    public int buscarQuantidadeDenuncia(String cpf) {
+        String sql = "SELECT Denuncias FROM cliente WHERE CPF = ?";
+        int denuncias = 0;
+        
+        try(Connection conn = Conexao.conectar();
+         PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, cpf);
+            ResultSet rs = stmt.executeQuery();
+            
+            if(rs.next()) {
+                denuncias = rs.getInt("Denuncias");
+            }
+        }catch(SQLException e){
+            e.printStackTrace();
+        }
+        return denuncias;
+    }
+
+
