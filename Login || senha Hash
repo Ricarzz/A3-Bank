@@ -1,4 +1,4 @@
-// nosso sistema de gerar Hash na classe SegurançHeleper:
+//  ---- Nosso sistema de gerar Hash (SHA-256) na classe SegurançHeleper: ----
 
 public static String gerarHash(String input) {
         try {
@@ -22,7 +22,7 @@ public static String gerarHash(String input) {
 
 
 
-// para cadastrar uma nova senha: 
+//  ---- Para cadastrar uma nova senha: ----
 
 String senha = new String(jPasswordField1.getPassword());
 String senhaHash = SegurancaHelper.gerarHash(senha);
@@ -30,7 +30,7 @@ Cliente cliente = new Cliente(nome, cpf, 0.0, senhaHash, sexo, telefone, email, 
 
 
 
-// na classe Cliente.DAO, em caso de "Esqueci a senha" :
+//  ---- Na classe Cliente.DAO, em caso de "Esqueci a senha" : ----
 
 public void trocarSenha(String email, String novaSenhaHash) {
         String sql = "UPDATE cliente SET SenhaHash = ? WHERE Email = ?";
@@ -46,7 +46,7 @@ public void trocarSenha(String email, String novaSenhaHash) {
 
 
 
-// na classe Cliente, para verificar a senha de confirmação de transferência:
+// ---- Na classe Cliente, para verificar a senha de confirmação de transferência: ----
 
 public boolean verificarSenha(String respostaSenha){
         String hashDigitado = SegurancaHelper.gerarHash(respostaSenha);
@@ -64,7 +64,7 @@ public boolean verificarSenha(String respostaSenha){
 
 
 
-// verificar a senha no login:
+// ---- Verificar a senha no login: ----
 
 public boolean verificarSenhaLogin (String respostaSenha) {
         String hashDigitado = SegurancaHelper.gerarHash(respostaSenha);
