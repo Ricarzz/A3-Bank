@@ -1,0 +1,121 @@
+// ---- Aqui, como nosso sistema age após o clique na função, logo abaixo alguns métodos que criamos: ---- (existe também um .java específico para que conseguíssemos enviar email)
+
+String email = JOptionPane.showInputDialog(null, "Digite o e-mail cadastrado:");
+        
+        if (email == null || email.trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Você deve digitar um e-mail válido.");
+            return;
+        }
+        
+        if (!email.matches("^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}$")) {
+            JOptionPane.showMessageDialog(null, "Formato de e-mail inválido.");
+            return;
+        }
+
+        ClienteDAO clienteDAO = new ClienteDAO();
+        Cliente cliente = clienteDAO.buscarPorEmail(email);
+
+        if (cliente != null) {
+            int confirmacao = JOptionPane.showConfirmDialog(null, 
+            email + " receberá um e-mail com um código de verificação.\nDeseja continuar?", 
+            "Confirmação", JOptionPane.YES_NO_OPTION);
+
+            if (confirmacao == JOptionPane.YES_OPTION) {
+                
+                String codigoGerado = clienteDAO.gerarCodigoVerificacao(); 
+                clienteDAO.salvarCodigoRecuperacao(email, codigoGerado);
+
+                try {
+                    EnviarEmail.enviarCodigoVerificacao(email, codigoGerado);
+                    JOptionPane.showMessageDialog(null, "E-mail com código enviado. Verifique sua caixa de entrada.");
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null, "Falha ao enviar o e-mail. Tente novamente mais tarde.");
+                    e.printStackTrace();
+                    return;
+                }
+                
+                String codigoDigitado = JOptionPane.showInputDialog(null, "Digite o código recebido por e-mail:");
+
+                if (codigoDigitado != null && codigoDigitado.equals(codigoGerado)) {
+                    JOptionPane.showMessageDialog(null, "Código confirmado com sucesso!");
+
+                    TelaTrocarSenha telaTrocarSenha = new TelaTrocarSenha(email);
+                    telaTrocarSenha.setVisible(true);
+                } else {
+                    JOptionPane.showMessageDialog(null, "Código inválido. Tente novamente.");
+                }
+            }
+        } else {
+            JOptionPane.showMessageDialog(null, "E-mail não encontrado.");
+        }
+
+
+
+// ---- Aqui nosso sistema gera o código Random para enviar ao email: ----
+
+ public String gerarCodigoVerificacao() {
+        Random random = new Random();
+        int codigo = 100000 + random.nextInt(900000); // Gera número de 6 dígitos
+        return String.valueOf(codigo);
+    }
+
+
+// ---- Salvamos o código no banco de dados por 15 minutos (o tempo limite para usar o código) e logo dps apagamos ele caso tenha concluido a troca de senha: ----
+
+public void salvarCodigoRecuperacao(String email, String codigoGerado) {
+        String sql = "INSERT INTO recuperacao_senha (Email, Codigo, expira) VALUES (?, ?, ?)";
+    
+        try (Connection conn = Conexao.conectar();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+        
+            stmt.setString(1, email);
+            stmt.setString(2, codigoGerado);
+        
+        // Define expiração para 15 minutos a partir de agora
+            LocalDateTime expira = LocalDateTime.now().plusMinutes(15);
+            stmt.setTimestamp(3, Timestamp.valueOf(expira));
+        
+            stmt.executeUpdate();
+        
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+public void apagarCodigoRecuperacao(String email) {
+        String sql = "DELETE FROM recuperacao_senha WHERE Email = ?";
+        try (Connection conn = Conexao.conectar();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+        
+            stmt.setString(1, email);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+// ---- Verificamos se o código está correto: ----
+
+    public boolean verificarCodigoRecuperacao(String email, String codigo) {
+        String sql = "SELECT * FROM recuperacao_senha WHERE Email = ? AND Codigo = ? AND expira > NOW()";
+
+        try (Connection conn = Conexao.conectar();
+            PreparedStatement stmt = conn.prepareStatement(sql)) {
+        
+            stmt.setString(1, email);
+            stmt.setString(2, codigo);
+        
+            ResultSet rs = stmt.executeQuery();
+            return rs.next();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    
+    
+   
