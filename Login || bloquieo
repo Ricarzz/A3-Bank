@@ -1,0 +1,70 @@
+// ---- Aqui dentro da classe Cliente verificamos se o usuário errou a senha, adicionando assim +1 em tentativas: ----
+
+public boolean verificarSenhaLogin (String respostaSenha) {
+        String hashDigitado = SegurancaHelper.gerarHash(respostaSenha);
+
+        if(this.senha.equals(hashDigitado)){
+            tentativaSenha = 0;
+            tempoDeBloqueio = 5000;
+            nTempo = 5;
+            return true;
+        } else {
+            tentativaSenha++;
+            return false;
+        }
+    }
+
+
+
+// ---- Aqui para evitarmos entrada forçada, criamos uma trava temporaria apartir de 3 erros, e uma trava "permanente" pós 5 erros: ----
+
+   boolean senhaCorreta = clienteAtual.verificarSenhaLogin(senhaDigitada);
+   if (senhaCorreta) {
+       new TelaPrincipal(clienteAtual).setVisible(true); // passa para a próxima tela
+       clienteAtual = null;
+       this.dispose();
+   } else {
+       JOptionPane.showMessageDialog(this, "Senha incorreta.");
+                
+       if (clienteAtual.contaBloqueada()) {
+           JOptionPane.showMessageDialog(this, "Por segurança para evitar entrada forçada, bloqueamos a conta.");
+           clienteDAO.bloquearConta(clienteAtual.getCpf());
+           clienteAtual = clienteDAO.buscarPorEmail(clienteAtual.getEmail());// pra atualizar 
+           return;
+       }
+
+       if (clienteAtual.precisaBloquearTemporariamente()) {
+           int tempo = clienteAtual.getTempoDeBloqueio();
+           JOptionPane.showMessageDialog(this, "Número de tentativas suspeito. Aguarde " + (tempo / 1000) + " segundos.");
+
+           try {
+               Thread.sleep(tempo);
+               clienteAtual.aumentarBloqueio();
+           } catch (InterruptedException e) {
+                e.printStackTrace();
+           }
+      }
+      passwordField.setText(""); //pra limpar imput
+      passwordField.requestFocus();                
+ }
+
+
+
+// ---- Aqui alguns dos metodos criados: ----  
+
+    public boolean precisaBloquearTemporariamente() {
+    return tentativaSenha >= 3 && tentativaSenha < 5;
+    }
+
+    public boolean contaBloqueada() {
+        return tentativaSenha == 5;
+    }
+
+    public int getTempoDeBloqueio() {
+        return tempoDeBloqueio;
+    }
+
+    public void aumentarBloqueio() {
+        tempoDeBloqueio += 5000;
+        nTempo += 5;
+    }
