@@ -1,0 +1,29 @@
+// ---- Adicionamos uma trava após as trasnferências nos ultimos 10 minutos atingirem R$2.000 (sendo facíl mudar o valor limite e o tempo): ----
+
+        double totalRecentes = clienteDAO.buscarTotalTransferenciasRecentes(cliente.getCpf(), 10);
+        
+        if ((totalRecentes + valor) > 2000) {
+        JOptionPane.showMessageDialog(this, "Transferências recentes somam mais de R$2.000 em 10 minutos. Transferência bloqueada por segurança.");
+        return;
+        }
+
+
+// ---- Aqui o método que calcula o valor das transferências nos ultimos minutos: ----
+
+    public double buscarTotalTransferenciasRecentes(String cpf, int minutos) {
+        String sql = "SELECT SUM(Valor) FROM transacao WHERE CPF_Cliente = ? AND Tipo = 'Transferência enviada' AND Data_Hora >= ?";
+        try (Connection conn = Conexao.conectar(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, cpf);
+
+            LocalDateTime limite = LocalDateTime.now().minusMinutes(minutos);
+            stmt.setTimestamp(2, Timestamp.valueOf(limite));
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getDouble(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0.0;
+    }
