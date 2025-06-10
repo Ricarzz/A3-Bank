@@ -1,0 +1,14 @@
+// ---- Valores acima de R$1.000 emitem um aviso antes da transferência ser realizada, seguido de um pedido de confirmação, assim como nas demais transferências: ----
+
+        if (valor > 1000) {
+            JOptionPane.showMessageDialog(this,
+                "Transferências acima de R$1.000,00 serão rastreadas e analisadas por motivos de segurança.",
+                "Aviso de Segurança", JOptionPane.WARNING_MESSAGE);
+        }
+        
+        String valorFormatado = NumberFormat.getCurrencyInstance(new Locale("pt", "BR")).format(valor);
+        int confirmacao = JOptionPane.showConfirmDialog(this,
+        "Transferir " + valorFormatado + " para " + destinatario.getNome() +
+        "\nChave: " + chave + "\nDeseja continuar?",
+        "Confirmar Transferência", JOptionPane.YES_NO_OPTION);
+
