@@ -1,0 +1,35 @@
+// ---- Bloqueamos qualquer tentativa de transferência ao usuário que atingiu o limite de denúncias (5): ----
+
+        int denuncias = clienteDAO.buscarQuantidadeDenuncia(destinatario.getCpf());
+
+        if (denuncias >= 5) {
+            JOptionPane.showMessageDialog(this, "Esta conta está bloqueada por excesso de denúncias. Transferência cancelada.");
+            return;
+        }
+
+
+
+// ---- Bloqueamos também a entrada do usuário ao aplicativo, fazendo com que seja necessário o desbloqueio através do código de verificação enviado por nosso suporte no email: ---- 
+
+            if (clienteDAO.buscarQuantidadeDenuncia(clienteAtual.getCpf()) >= 5) {
+                JOptionPane.showMessageDialog(null, "Sua conta está bloqueada por excesso de denúncias.\nVerifique seu e-mail para um código de desbloqueio.");
+
+                 // Gera e envia código
+                String codigoGerado = clienteDAO.gerarCodigoVerificacao();
+                clienteDAO.salvarCodigoRecuperacao(clienteAtual.getCpf(), codigoGerado);
+                EnviarEmail.enviarCodigoVerificacao(clienteAtual.getEmail(), codigoGerado);
+
+                String codigoDigitado = JOptionPane.showInputDialog(null, "Digite o código de desbloqueio enviado ao seu e-mail:");
+
+                if (codigoDigitado != null && clienteDAO.verificarCodigoRecuperacao(clienteAtual.getCpf(), codigoDigitado)) {
+                    clienteDAO.atualizarDenunciasParaTres(clienteAtual.getCpf());
+                    clienteDAO.apagarCodigoRecuperacao(clienteAtual.getCpf()); // limpa o código do banco
+                    JOptionPane.showMessageDialog(null, "Desbloqueio realizado com sucesso. Tente o login novamente.");
+                } else {
+                    JOptionPane.showMessageDialog(null, "Código inválido ou incorreto. A conta permanece bloqueada.");
+                }
+
+             return;
+            }
+
+
