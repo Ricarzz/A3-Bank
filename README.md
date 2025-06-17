@@ -10,6 +10,7 @@ Este repositório contém os principais pontos de segurança do sistema bancári
 - Armazenamento seguro de senhas (Hash SHA-256)
 
  **Transferências**
+- Notificações
 - Validações completas de dados
 - Confirmação e avisos para valores altos (acima de R$1.000)
 - Bloqueio de operações suspeitas em horários não permitidos
