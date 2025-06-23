@@ -1,4 +1,4 @@
-# 🏦 A3Bank – Sistema Bancário em Java
+#  A3Bank – Sistema Bancário em Java
 
 Projeto desenvolvido como parte da disciplina de Programação e Soluções Computacionais (A3), o **A3Bank** simula um sistema bancário funcional com foco em **segurança**, **usabilidade** e **integração com serviços externos** como envio de SMS e e-mail.
 
@@ -17,16 +17,16 @@ Projeto desenvolvido como parte da disciplina de Programação e Soluções Comp
   - Bloqueio automático para operações fora do horário permitido
   - Notificação por SMS usando Twilio
 
--  **Segurança com Denúncias**
+- **Segurança com Denúncias**
   - Alerta ao tentar transferir para contas denunciadas
   - Bloqueio de contas com 5+ denúncias
 
--  **Depósitos**
+- **Depósitos**
   - Validação de valor
   - Atualização automática de saldo
   - Registro da transação no histórico
 
--  **Histórico de Transações**
+- **Histórico de Transações**
   - Visualização por CPF do cliente
 
 ---
