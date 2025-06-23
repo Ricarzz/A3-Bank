@@ -14,12 +14,14 @@ Projeto desenvolvido como parte da disciplina de Programação e Soluções Comp
 - **Transferências Bancárias**
   - Validação de dados e confirmação de valor
   - Avisos para valores altos (> R$1.000)
-  - Bloqueio automático para operações fora do horário permitido
+  - Trava de multiplas transferências
+  - Bloqueio automático para operações com valores altos fora do horário permitido
   - Notificação por SMS usando Twilio
 
 - **Segurança com Denúncias**
   - Alerta ao tentar transferir para contas denunciadas
   - Bloqueio de contas com 5+ denúncias
+  - Histórico de denúncias
 
 - **Depósitos**
   - Validação de valor
